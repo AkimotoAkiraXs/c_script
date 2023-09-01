@@ -1,3 +1,7 @@
+/*
+ * 此方法通过参数传入每周工作时间参数，计算一段时间范围内的工作日/工作月的数量
+ * */
+
 #include <sstream>
 #include <iostream>
 #include <vector>
@@ -10,15 +14,13 @@ const static char split = ','; // 分隔符
 const static int PER_WEEK = 7; // 每周七天
 const static int PER_DAY = 5; // 每天五个参数
 const static ll SECONDS_OF_DAY = 24 * 60 * 60;
+static int type; // 0-计算日，1-计算月
 
-enum CalType {
-    DAY,
-    MONTH
-};
+void setTimeZone();
 
 vector<string> read(const string &in);
 
-vector<ll> parseParameter(const string &arg, int *type);
+vector<ll> parseParameter(const string &arg);
 
 vector<ll> parseLL(const vector<string> &timeStamps, int limit);
 
@@ -31,22 +33,31 @@ void printTime(const ll &startStamp, const ll &endStamp);
 void printInfo(const vector<ll> &weekDays, const ll &startStamp, const ll &endStamp);
 
 int main(int argc, char *argv[]) {
-    int type; // 计算类型
-    if (argc < 2) throw runtime_error("未传入参数!");
-    const vector<ll> &weekDays = parseParameter(argv[1], &type); // 初始化启动参数
+    if (argc < 2) throw runtime_error("need arguments!");
+
+//    setTimeZone(); // 初始化时区
+
+    const vector<ll> &weekDays = parseParameter(argv[1]); // 初始化启动参数
+
     string in;
     while (getline(cin, in)) {
         const vector<string> &inputs = read(in); // 解析输入，获取时间范围
         const vector<ll> &vector = parseLL(inputs, 2); // 时间范围字符串转为时间戳
         ll start = vector[0], end = vector[1];
-        printInfo(weekDays, start, end);
-        if (type == DAY) {
-            cout << calculateDays(weekDays, start, end);
-        } else if (type == MONTH) {
-            cout << calculateMonths(weekDays, start, end);
-        }
+        if (end < start) throw runtime_error("start time can't greater then end time.");
+//        printInfo(weekDays, start, end);
+        if (type) cout << calculateMonths(weekDays, start, end);
+        else cout << calculateDays(weekDays, start, end);
     }
     return 0;
+}
+
+void setTimeZone() {
+    const char *timeZone = "Asia/Shanghai";
+    char env_var[100];
+    snprintf(env_var, sizeof(env_var), "TZ=%s", timeZone);
+    putenv(env_var);
+    tzset(); // 更新时区
 }
 
 vector<string> read(const string &in) {
@@ -57,15 +68,15 @@ vector<string> read(const string &in) {
     return res;
 }
 
-vector<ll> parseParameter(const string &arg, int *type) {
+vector<ll> parseParameter(const string &arg) {
     vector<string> args = read(arg);
-    *type = stoi(args.front());
+    type = stoi(args.front());
     args.erase(args.begin());
     return parseLL(args, PER_WEEK * PER_DAY);
 }
 
 vector<ll> parseLL(const vector<string> &timeStamps, int limit) {
-    if (timeStamps.size() != limit) throw runtime_error("参数异常！");
+    if (timeStamps.size() != limit) throw runtime_error("the number of arguments error.");
     vector<ll> res;
     for (const string &str: timeStamps) res.push_back(stoll(str) / 1000);
     return res;
@@ -90,7 +101,7 @@ int calculateDays(const vector<ll> &weekDays, const ll &startStamp, const ll &en
         dayOfWeek = (dayOfWeek + 1) % 7;
         if (ed == 0) continue;
         time_t start = max(left, startStamp) - left;
-        time_t end = min(right, left + SECONDS_OF_DAY) - left;
+        time_t end = min(endStamp, left + SECONDS_OF_DAY) - left;
         if (start <= ed && end > st) cnt++;
     }
     return cnt;
