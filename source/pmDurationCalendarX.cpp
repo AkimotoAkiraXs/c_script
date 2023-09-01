@@ -7,14 +7,12 @@
 #include <iostream>
 #include <map>
 #include <ctime>
-#include <chrono>
 
 using namespace std;
-using namespace chrono;
 
-typedef long long ll;
+typedef time_t tt;
 
-const static ll SECONDS_OF_DAY = 24 * 60 * 60;
+const static tt SECONDS_OF_DAY = 24 * 60 * 60;
 
 static int type; // 0-计算日，1-计算月
 
@@ -26,9 +24,9 @@ vector<int> parseInt(const vector<string> &strings);
 
 map<int, map<int, int>> parseCalendar(const string &arg);
 
-int calculateDays(const map<int, map<int, int>> &date, ll start, ll end);
+int calculateDays(const map<int, map<int, int>> &date, tt start, tt end);
 
-int calculateMonth(const map<int, map<int, int>> &date, ll start, ll end);
+int calculateMonth(const map<int, map<int, int>> &date, tt start, tt end);
 
 int main(int argc, char *argv[]) {
     if (argc < 2) throw runtime_error("need arguments!");
@@ -38,7 +36,7 @@ int main(int argc, char *argv[]) {
     string in;
     while (getline(cin, in)) {
         const vector<string> &inputs = read(in, '\t');
-        ll start = stoll(inputs[0]) / 1000, end = stoll(inputs[1]) / 1000;
+        tt start = stoll(inputs[0]) / 1000, end = stoll(inputs[1]) / 1000;
         if (end < start) throw runtime_error("start time can't greater then end time.");
         const map<int, map<int, int>> &date = parseCalendar(inputs[2]);
         if (type) cout << calculateMonth(date, start, end);
@@ -72,7 +70,7 @@ vector<int> parseInt(const vector<string> &strings) {
 map<int, map<int, int>> parseCalendar(const string &arg) {
     auto start = arg.find('[');
     auto end = arg.find(']');
-    if (start == string::npos || end == string::npos) throw runtime_error("数据格式错误，请按数组格式输入日历");
+    if (start == string::npos || end == string::npos) throw runtime_error("data format error.");
     auto subStr = arg.substr(start + 1, end - start - 1); // 去除[]
     const vector<string> &strings = read(subStr, ',');
     auto data = parseInt(strings);
@@ -87,12 +85,12 @@ map<int, map<int, int>> parseCalendar(const string &arg) {
     return calender;
 }
 
-int calculateDays(const map<int, map<int, int>> &date, ll start, ll end) {
+int calculateDays(const map<int, map<int, int>> &date, tt start, tt end) {
     // 获取开始日期下一天的00:00
 
     tm &run = *localtime(&start);
     run.tm_hour = run.tm_min = run.tm_sec = 0;
-    time_t startDay = mktime(&run);
+    tt startDay = mktime(&run);
 
     //获取结束日期上一天的24:00
     tm &endTm = *localtime(&end);
@@ -100,10 +98,10 @@ int calculateDays(const map<int, map<int, int>> &date, ll start, ll end) {
         endTm.tm_mday++;
         endTm.tm_hour = endTm.tm_min = endTm.tm_sec = 0;
     }
-    time_t endLastDay = mktime(&endTm);
+    tt endLastDay = mktime(&endTm);
 
     int cnt = 0;
-    for (time_t i = startDay; i < endLastDay; i += SECONDS_OF_DAY) {
+    for (tt i = startDay; i < endLastDay; i += SECONDS_OF_DAY) {
         run = *localtime(&i);
         int year = run.tm_year + 1900;
         int month = run.tm_mon;
@@ -116,7 +114,7 @@ int calculateDays(const map<int, map<int, int>> &date, ll start, ll end) {
     return cnt;
 }
 
-int calculateMonth(const map<int, map<int, int>> &date, ll start, ll end) {
+int calculateMonth(const map<int, map<int, int>> &date, tt start, tt end) {
 
     tm &endTm = *localtime(&end);
     int endYear = endTm.tm_year + 1900;
@@ -135,7 +133,7 @@ int calculateMonth(const map<int, map<int, int>> &date, ll start, ll end) {
     int firstMonthFlag = false;
     if (date.find(startYear) != date.end()) {
         int bit = date.at(startYear).at(startMonth);
-        time_t runTime = mktime(&run);
+        tt runTime = mktime(&run);
         while (startMonth == run.tm_mon) {
             if (!firstMonthFlag && (bit >> (run.tm_mday -1) & 1) == 1) firstMonthFlag = true;
             runTime += SECONDS_OF_DAY;
