@@ -12,12 +12,11 @@ using namespace std;
 
 typedef time_t tt;
 
-const static char split = ','; // 分隔符
 const static tt SECONDS_OF_DAY = 24 * 60 * 60;
 
 void setTimeZone();
 
-vector<string> read(const string &in);
+vector<string> read(const string &in, const char &split);
 
 vector<int> parseInt(const vector<string> &strings);
 
@@ -37,7 +36,7 @@ int main(int argc, char *argv[]) {
 
     string in;
     while (getline(cin, in)) {
-        const vector<string> &strings = read(in);
+        const vector<string> &strings = read(in, '\t');
         const vector<tt> &times = parseLL(strings);
         tt start = times[0], end = times[1];
         if (end < start) throw runtime_error("start time can't greater then end time.");
@@ -55,7 +54,7 @@ void setTimeZone() {
     tzset(); // 更新时区
 }
 
-vector<string> read(const string &in) {
+vector<string> read(const string &in, const char &split) {
     string str;
     istringstream inStream(in);
     vector<string> res;
@@ -80,7 +79,7 @@ map<int, map<int, int>> parseParameter(const string &arg) {
     auto end = arg.find(']');
     if (start == string::npos || end == string::npos) throw runtime_error("data formatError.");
     auto subStr = arg.substr(start + 1, end - start - 1); // 去除[]
-    const vector<string> &strings = read(subStr);
+    const vector<string> &strings = read(subStr, ',');
     auto data = parseInt(strings);
 
     map<int, map<int, int>> calendar;
