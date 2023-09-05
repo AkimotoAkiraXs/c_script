@@ -120,7 +120,7 @@ int calculateDays(const map<int, map<int, int>> &date, tt start, tt end) {
         int day = run.tm_mday - 1;
         if (date.find(year) != date.end()) {
             int bit = date.at(year).at(month);
-            if ((bit >> day & 1) == 1) cnt++;
+            if ((bit >> day & 1) == 0) cnt++;
         }
     }
     return cnt;
@@ -147,7 +147,7 @@ int calculateMonth(const map<int, map<int, int>> &date, tt start, tt end) {
         int bit = date.at(startYear).at(startMonth);
         tt runTime = mktime(&run);
         while (startMonth == run.tm_mon) {
-            if (!firstMonthFlag && (bit >> (run.tm_mday - 1) & 1) == 1) firstMonthFlag = true;
+            if (!firstMonthFlag && (bit >> (run.tm_mday - 1) & 1) == 0) firstMonthFlag = true;
             runTime += SECONDS_OF_DAY;
             run = *localtime(&runTime);
         }
@@ -166,7 +166,7 @@ int calculateMonth(const map<int, map<int, int>> &date, tt start, tt end) {
     if ((startYear != endYear || startMonth != endMonth) && date.find(endYear) != date.end()) {
         int bit = date.at(endYear).at(endMonth);
         for (int i = 0; i <= endDay; ++i) {
-            if ((bit >> i & 1) == 1) {
+            if ((bit >> i & 1) == 0) {
                 cnt++;
                 break;
             }
