@@ -29,18 +29,23 @@ int calculateDays(const map<int, map<int, int>> &date, tt start, tt end);
 int calculateMonth(const map<int, map<int, int>> &date, tt start, tt end);
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) throw runtime_error("need arguments!");
+    try {
+        if (argc < 2) throw runtime_error("need arguments!");
 
-    type = stoi(argv[1]);
+        type = stoi(argv[1]);
 
-    string in;
-    while (getline(cin, in)) {
-        const vector<string> &inputs = read(in, '\t');
-        tt start = stoll(inputs[0]) / 1000, end = stoll(inputs[1]) / 1000;
-        if (end < start) throw runtime_error("start time can't greater then end time.");
-        const map<int, map<int, int>> &date = parseCalendar(inputs[2]);
-        if (type) cout << calculateMonth(date, start, end) << endl;
-        else cout << calculateDays(date, start, end) << endl;
+        string in;
+        while (getline(cin, in)) {
+            const vector<string> &inputs = read(in, '\t');
+            tt start = stoll(inputs[0]) / 1000, end = stoll(inputs[1]) / 1000;
+            if (end < start) throw runtime_error("start time can't greater then end time.");
+            const map<int, map<int, int>> &date = parseCalendar(inputs[2]);
+            if (type) cout << calculateMonth(date, start, end) << endl;
+            else cout << calculateDays(date, start, end) << endl;
+        }
+    } catch (runtime_error &error) {
+        string error_message = error.what();
+        cout << 0 << endl;
     }
     return 0;
 }

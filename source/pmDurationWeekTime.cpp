@@ -32,19 +32,24 @@ void printTime(const tt &startStamp, const tt &endStamp);
 void printInfo(const vector<tt> &weekDays, const tt &startStamp, const tt &endStamp);
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) throw runtime_error("need arguments!");
+    try {
+        if (argc < 2) throw runtime_error("need arguments!");
 
-    int type = argv[1][0] - '0'; // 0-计算日，1-计算月
-    const vector<tt> &weekDays = parseParameter(argv[1]); // 初始化启动参数
+        int type = argv[1][0] - '0'; // 0-计算日，1-计算月
+        const vector<tt> &weekDays = parseParameter(argv[1]); // 初始化启动参数
 
-    string in;
-    while (getline(cin, in)) {
-        const vector<string> &strings = read(in, '\t');
-        const vector<tt> &inputs = parseLL(strings, 2);
-        tt start = inputs[0], end = inputs[1];
-        if (end < start) throw runtime_error("start time can't greater then end time.");
-        if (type) cout << calculateMonths(weekDays, start, end) << endl;
-        else cout << calculateDays(weekDays, start, end) << endl;
+        string in;
+        while (getline(cin, in)) {
+            const vector<string> &strings = read(in, '\t');
+            const vector<tt> &inputs = parseLL(strings, 2);
+            tt start = inputs[0], end = inputs[1];
+            if (end < start) throw runtime_error("start time can't greater then end time.");
+            if (type) cout << calculateMonths(weekDays, start, end) << endl;
+            else cout << calculateDays(weekDays, start, end) << endl;
+        }
+    } catch (runtime_error &error) {
+        string error_message = error.what();
+        cout << 0 << endl;
     }
     return 0;
 }
