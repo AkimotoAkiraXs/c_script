@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
         tt start = stoll(inputs[0]) / 1000, end = stoll(inputs[1]) / 1000;
         if (end < start) throw runtime_error("start time can't greater then end time.");
         const map<int, map<int, int>> &date = parseCalendar(inputs[2]);
-        if (type) cout << calculateMonth(date, start, end);
-        else cout << calculateDays(date, start, end);
+        if (type) cout << calculateMonth(date, start, end) << endl;
+        else cout << calculateDays(date, start, end) << endl;
     }
     return 0;
 }
@@ -135,7 +135,7 @@ int calculateMonth(const map<int, map<int, int>> &date, tt start, tt end) {
         int bit = date.at(startYear).at(startMonth);
         tt runTime = mktime(&run);
         while (startMonth == run.tm_mon) {
-            if (!firstMonthFlag && (bit >> (run.tm_mday -1) & 1) == 1) firstMonthFlag = true;
+            if (!firstMonthFlag && (bit >> (run.tm_mday - 1) & 1) == 1) firstMonthFlag = true;
             runTime += SECONDS_OF_DAY;
             run = *localtime(&runTime);
         }

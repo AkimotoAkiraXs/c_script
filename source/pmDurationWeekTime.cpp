@@ -43,8 +43,8 @@ int main(int argc, char *argv[]) {
         const vector<tt> &inputs = parseLL(strings, 2);
         tt start = inputs[0], end = inputs[1];
         if (end < start) throw runtime_error("start time can't greater then end time.");
-        if (type) cout << calculateMonths(weekDays, start, end);
-        else cout << calculateDays(weekDays, start, end);
+        if (type) cout << calculateMonths(weekDays, start, end) << endl;
+        else cout << calculateDays(weekDays, start, end) << endl;
     }
     return 0;
 }

@@ -40,8 +40,8 @@ int main(int argc, char *argv[]) {
         const vector<tt> &times = parseLL(strings);
         tt start = times[0], end = times[1];
         if (end < start) throw runtime_error("start time can't greater then end time.");
-        if (type) cout << calculateMonth(calender, start, end);
-        else cout << calculateDays(calender, start, end);
+        if (type) cout << calculateMonth(calender, start, end) << endl;
+        else cout << calculateDays(calender, start, end) << endl;
     }
     return 0;
 }
