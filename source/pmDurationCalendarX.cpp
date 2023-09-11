@@ -28,6 +28,8 @@ int calculateDays(const map<int, map<int, int>> &date, tt start, tt end);
 
 int calculateMonth(const map<int, map<int, int>> &date, tt start, tt end);
 
+int calculateSum(tm &currentDate); // 计算某个月全是非工作日（1）的十进制数
+
 int main(int argc, char *argv[]) {
     try {
         if (argc < 2) throw runtime_error("need arguments!");
@@ -92,12 +94,12 @@ map<int, map<int, int>> parseCalendar(const string &arg) {
 
 int calculateDays(const map<int, map<int, int>> &date, tt start, tt end) {
     // 获取开始日期下一天的00:00
-
-    tm &run = *localtime(&start);
+    tt runTimeStamp = start + SECONDS_OF_DAY;
+    tm &run = *localtime(&runTimeStamp);
     run.tm_hour = run.tm_min = run.tm_sec = 0;
     tt startDay = mktime(&run);
 
-    //获取结束日期上一天的24:00
+    //获取结束日期下一天的24:00
     tm &endTm = *localtime(&end);
     if (endTm.tm_hour != 0 || endTm.tm_min != 0 || endTm.tm_sec != 0) {
         endTm.tm_mday++;
@@ -114,6 +116,8 @@ int calculateDays(const map<int, map<int, int>> &date, tt start, tt end) {
         if (date.find(year) != date.end()) {
             int bit = date.at(year).at(month);
             if ((bit >> day & 1) == 0) cnt++;
+        } else {
+            cnt++; // 没有设定日历都为工作日
         }
     }
     return cnt;
@@ -131,39 +135,62 @@ int calculateMonth(const map<int, map<int, int>> &date, tt start, tt end) {
     int startYear = run.tm_year + 1900;
     int startMonth = run.tm_mon;
 
-    int total = 1 + (endYear - startYear) * 12 + endMonth - startMonth;
+    int total = (endYear - startYear) * 12 + endMonth - startMonth + 1;
 
     int cnt = 0;
-    // 计算第一个月是否符合
-    int firstMonthFlag = false;
-    if (date.find(startYear) != date.end()) {
-        int bit = date.at(startYear).at(startMonth);
-        tt runTime = mktime(&run);
-        while (startMonth == run.tm_mon) {
-            if (!firstMonthFlag && (bit >> (run.tm_mday - 1) & 1) == 0) firstMonthFlag = true;
-            runTime += SECONDS_OF_DAY;
-            run = *localtime(&runTime);
-        }
-    }
-    cnt += firstMonthFlag;
+    // 第一个月和最后一个月不计算
     for (int i = 1; i < total - 1; ++i) {
-        int year = run.tm_year + 1900;
-        int month = run.tm_mon;
-        if (date.find(year) != date.end() && date.at(year).at(month) != 0) cnt++;
         if (run.tm_mon == 11) {
             run.tm_year++;
             run.tm_mon = 0;
         } else run.tm_mon++;
+        int year = run.tm_year + 1900;
+        int month = run.tm_mon;
+        if (date.find(year) == date.end() || date.at(year).at(month) != calculateSum(run)) cnt++;
     }
-    // 计算最后一个月是否符合
-    if ((startYear != endYear || startMonth != endMonth) && date.find(endYear) != date.end()) {
-        int bit = date.at(endYear).at(endMonth);
-        for (int i = 0; i <= endDay; ++i) {
-            if ((bit >> i & 1) == 0) {
-                cnt++;
-                break;
+    // 如果不是只有一个月的话则需要计算最后一个月是否符合
+    if (total != 1) {
+        if (date.find(endYear) != date.end()) {
+            int bit = date.at(endYear).at(endMonth);
+            for (int i = 0; i < endDay; ++i) {
+                if ((bit >> i & 1) == 0) {
+                    cnt++;
+                    break;
+                }
             }
-        }
+        } else cnt++;
     }
     return cnt;
+}
+
+int calculateSum(tm &currentDate) {
+    // 获取当前月份
+    int currentMonth = currentDate.tm_mon + 1; // tm_mon的范围是0-11，所以需要加1
+
+    // 计算当前月份的天数
+    int daysInMonth = 0;
+
+    switch (currentMonth) {
+        case 4:
+        case 6:
+        case 9:
+        case 11:
+            daysInMonth = 30;
+            break;
+        case 2:
+            // 判断闰年
+            if ((currentDate.tm_year + 1900) % 4 == 0 &&
+                ((currentDate.tm_year + 1900) % 100 != 0 || (currentDate.tm_year + 1900) % 400 == 0))
+                daysInMonth = 29;
+            else
+                daysInMonth = 28;
+            break;
+        default:
+            daysInMonth = 31;
+    }
+    int res = 0;
+    for (int i = 0; i < daysInMonth; ++i) {
+        res += 1 << i;
+    }
+    return res;
 }

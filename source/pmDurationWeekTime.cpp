@@ -25,6 +25,8 @@ vector<tt> parseLL(const vector<string> &timeStamps, int limit);
 
 int calculateDays(const vector<tt> &weekDays, const tt &startStamp, const tt &endStamp);
 
+int countDays(const vector<tt> &weekDays, const tt &startStamp, const tt &endStamp);
+
 int calculateMonths(const vector<tt> &weekDays, const tt &startStamp, const tt &endStamp);
 
 void printTime(const tt &startStamp, const tt &endStamp);
@@ -86,8 +88,36 @@ vector<tt> parseLL(const vector<string> &timeStamps, int limit) {
     return res;
 }
 
+// 计算自然日函数，当天不会参与计算
 int calculateDays(const vector<tt> &weekDays, const tt &startStamp, const tt &endStamp) {
     // tm只有一个地址可用，所以二次调用会被刷掉旧值
+    // 开始日期推移到下一天的开始，兼容自然日的逻辑
+    tt runTimeStamp = startStamp + SECONDS_OF_DAY;
+    struct tm startTm = *localtime(&runTimeStamp);
+    startTm.tm_hour = startTm.tm_min = startTm.tm_sec = 0;
+    tt left = mktime(&startTm);
+    int dayOfWeek = (startTm.tm_wday + 6) % 7;
+
+    struct tm endTm = *localtime(&endStamp);
+    endTm.tm_hour = 24;
+    endTm.tm_min = endTm.tm_sec = 0;
+    tt right = mktime(&endTm);
+
+    int cnt = 0;
+    for (; left < right; left += SECONDS_OF_DAY) {
+        tt st = weekDays[dayOfWeek * PER_DAY + 1];
+        tt ed = weekDays[dayOfWeek * PER_DAY + 2];
+        dayOfWeek = (dayOfWeek + 1) % 7;
+        if (ed == 0) continue;
+        tt start = 0; // 不用考虑第一天，所以固定为0
+        tt end = min(endStamp, left + SECONDS_OF_DAY) - left;
+        if (start <= ed && end > st) cnt++;
+    }
+    return cnt;
+}
+
+// 单纯计算天的函数，当天会参与计算
+int countDays(const vector<tt> &weekDays, const tt &startStamp, const tt &endStamp) {
     struct tm startTm = *localtime(&startStamp);
     startTm.tm_hour = startTm.tm_min = startTm.tm_sec = 0;
     tt left = mktime(&startTm);
@@ -113,24 +143,29 @@ int calculateDays(const vector<tt> &weekDays, const tt &startStamp, const tt &en
 
 int calculateMonths(const vector<tt> &weekDays, const tt &startStamp, const tt &endStamp) {
     struct tm startTm = *localtime(&startStamp);
-    struct tm firstMonthEndTm = startTm;
-    firstMonthEndTm.tm_mon += 1;
-    firstMonthEndTm.tm_mday = 1;
-    firstMonthEndTm.tm_sec = firstMonthEndTm.tm_min = firstMonthEndTm.tm_hour = 0;
-    tt firstMonthEndStamp = mktime(&firstMonthEndTm);
-    int startYear = startTm.tm_year;
-    int startMon = startTm.tm_mon;
+    // 跳到下个月开始
+    struct tm nextMonthStartTm = startTm;
+    if (nextMonthStartTm.tm_mon == 11){
+        nextMonthStartTm.tm_year++;
+        nextMonthStartTm.tm_mon = 0;
+    } else{
+        nextMonthStartTm.tm_mon += 1;
+    }
+    nextMonthStartTm.tm_mday = 1;
+    nextMonthStartTm.tm_sec = nextMonthStartTm.tm_min = nextMonthStartTm.tm_hour = 0;
+    tt firstMonthEndStamp = mktime(&nextMonthStartTm);
+    int startYear = nextMonthStartTm.tm_year;
+    int startMon = nextMonthStartTm.tm_mon;
 
     struct tm endTm = *localtime(&endStamp);
     int cnt = (endTm.tm_year - startYear) * 12 + endTm.tm_mon - startMon + 1;
-    if (!calculateDays(weekDays, startStamp, min(endStamp, firstMonthEndStamp))) cnt--;
 
     struct tm lastMonthStartTm = endTm;
     lastMonthStartTm.tm_mday = 1;
     lastMonthStartTm.tm_sec = lastMonthStartTm.tm_min = lastMonthStartTm.tm_hour = 0;
     tt lastMonthStartTime = mktime(&lastMonthStartTm);
-    if (!calculateDays(weekDays, max(startStamp, lastMonthStartTime), endStamp)) cnt--;
-    return cnt;
+    if (!countDays(weekDays, max(firstMonthEndStamp, lastMonthStartTime), endStamp)) cnt--;
+    return max(0, cnt);
 }
 
 void printInfo(const vector<tt> &weekDays, const tt &startStamp, const tt &endStamp) {
