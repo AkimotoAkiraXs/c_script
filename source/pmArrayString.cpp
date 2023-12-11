@@ -26,7 +26,7 @@ enum AsrCharType {
   SP,      // space
   LB,      // left bracket
   RB,      // right bracket
-  SQ,      // single quotation
+  DQ,      // double quotation
   C,       // character except escape and single quotation
   E,       // escape
   CMA,     // comma
@@ -44,22 +44,22 @@ void init() {
   matrix[AsrStateType::START][AsrCharType::SP] = AsrStateType::START;
   matrix[AsrStateType::START][AsrCharType::EF] = AsrStateType::END;
   matrix[AsrStateType::ARRAY_START][AsrCharType::RB] = AsrStateType::ARRAY_END;
-  matrix[AsrStateType::ARRAY_START][AsrCharType::SQ] =
+  matrix[AsrStateType::ARRAY_START][AsrCharType::DQ] =
       AsrStateType::STRING_START;
   matrix[AsrStateType::ARRAY_START][AsrCharType::SP] =
       AsrStateType::ARRAY_START;
-  matrix[AsrStateType::STRING_START][AsrCharType::SQ] =
+  matrix[AsrStateType::STRING_START][AsrCharType::DQ] =
       AsrStateType::STRING_END;
   matrix[AsrStateType::STRING_START][AsrCharType::E] = AsrStateType::ESCAPE;
   matrix[AsrStateType::STRING_START][AsrCharType::C] =
       AsrStateType::STRING_START;
-  matrix[AsrStateType::ESCAPE][AsrCharType::SQ] = AsrStateType::STRING_START;
+  matrix[AsrStateType::ESCAPE][AsrCharType::DQ] = AsrStateType::STRING_START;
   matrix[AsrStateType::ESCAPE][AsrCharType::E] = AsrStateType::STRING_START;
   matrix[AsrStateType::ESCAPE][AsrCharType::C] = AsrStateType::STRING_START;
   matrix[AsrStateType::STRING_END][AsrCharType::RB] = AsrStateType::ARRAY_END;
   matrix[AsrStateType::STRING_END][AsrCharType::CMA] = AsrStateType::ARRAY_NEXT;
   matrix[AsrStateType::STRING_END][AsrCharType::SP] = AsrStateType::STRING_END;
-  matrix[AsrStateType::ARRAY_NEXT][AsrCharType::SQ] =
+  matrix[AsrStateType::ARRAY_NEXT][AsrCharType::DQ] =
       AsrStateType::STRING_START;
   matrix[AsrStateType::ARRAY_NEXT][AsrCharType::SP] = AsrStateType::ARRAY_NEXT;
   matrix[AsrStateType::ARRAY_END][AsrCharType::EF] = AsrStateType::END;
@@ -82,8 +82,8 @@ string parse(const string &line) {
       case STRING_START:
       case ESCAPE:
         switch (c) {
-          case '\'':
-            charType = AsrCharType::SQ;
+          case '"':
+            charType = AsrCharType::DQ;
             break;
           case '\\':
             charType = AsrCharType::E;
@@ -104,8 +104,8 @@ string parse(const string &line) {
           case ']':
             charType = AsrCharType::RB;
             break;
-          case '\'':
-            charType = AsrCharType::SQ;
+          case '"':
+            charType = AsrCharType::DQ;
             break;
           case '\\':
             charType = AsrCharType::E;
